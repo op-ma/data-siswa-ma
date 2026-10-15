@@ -2,7 +2,7 @@
 <html lang="id"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Dashboard Data Siswa MA Al-Ma'tuq 2026/2027</title>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Data Siswa MA"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="theme-color" content="#0f766e">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -113,9 +113,15 @@ html,body{max-width:100%;overflow-x:hidden}.card,.k,.sc,.grid>*{min-width:0}
 tr.sub td{font-weight:700;background:#f0fdfa;color:var(--b2)}
 .scroll tr.tot td{position:sticky;bottom:0;box-shadow:0 -1px 0 var(--line)}
 @media(min-width:641px){.lst td.nw,.lst th:nth-child(4){text-align:left}}
+#ins{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#ecfdf5;color:#065f46;font-weight:600;font-size:13px;border-bottom:1px solid var(--line)}
+#ins[hidden]{display:none}#ins span{flex:1}
+.ib{background:var(--b2);color:#fff;border:0;border-radius:8px;padding:8px 16px;font:700 13px inherit;font-family:inherit;cursor:pointer;flex:none}
+.ix{background:none;border:0;font-size:22px;line-height:1;color:inherit;cursor:pointer;flex:none;padding:0 4px}
+@media(min-width:641px){.lst td.ep,.lst th.ep{text-align:left}.lst td.ep{white-space:nowrap}}
 </style></head><body>
 <header><div class="hd"><img class="logo" src="icon-192.png" alt="Logo"><div><h1>Dashboard Data Siswa MA Al-Ma'tuq</h1><small>Tahun Ajaran 2026/2027</small><small id="sub">Memuat data…</small></div></div>
 <div class="bar" id="chips"></div></header>
+<div id="ins" hidden></div>
 <nav><button class="tab on" data-t="siswa">Siswa</button><button class="tab" data-t="ortu">Orang Tua</button><button class="tab" data-t="yatim">Yatim</button><button class="tab" data-t="pegawai">Pegawai</button><button class="tab" data-t="wilayah">Wilayah</button><button class="tab" data-t="cari">🔍 Cari Siswa</button></nav>
 <main id="app"><div class="msg">Memuat data…</div></main>
 
@@ -154,8 +160,23 @@ function markazCard(d){const ms=["Al-Ma'tuq",'Al-Zamil','Al-Afaf','Al-Bassam'].m
  const c=(i,t,v)=>`<td class="c" onclick="openMz(${i},'${t}')">${v}</td>`;
  return `<div class="card"><h3>Siswa per Markaz &amp; Tingkat</h3><div class="scroll"><table><tr><th>Markaz</th>${TING.map(t=>`<th>Kelas ${t}</th>`).join('')}<th>Total</th></tr>${ms.map((r,i)=>`<tr${r[0]=='Total'?' class="tot"':''}><td>${r[0]=='Total'?'Total':'Markaz '+r[0]}</td>${TING.map(t=>c(i,t,r[1].filter(x=>x['Tingkat']==t).length)).join('')}${c(i,'','<b>'+r[1].length+'</b>')}</tr>`).join('')}</table></div></div>`}
 function openMz(i,t){const r=window._mz[i];openM((r[0]=='Total'?'Semua Markaz':'Markaz '+r[0])+(t?' · Kelas '+t:''),r[1].filter(x=>!t||x['Tingkat']==t))}
+function eduRank(v){v=(v||'').toLowerCase().replace(/[.\s]+/g,' ').trim();
+ if(/tidak (pernah )?sekolah|belum sekolah|tidak ada|tidak tamat/.test(v))return 0;
+ if(/putus/.test(v))return 1;
+ if(/\bsp ?-?\d|spesialis|profesi/.test(v))return 12;
+ if(/\bs ?-?3\b|doktor/.test(v))return 11;
+ if(/\bs ?-?2\b|magister/.test(v))return 10;
+ if(/\bs ?-?1\b|sarjana/.test(v))return 9;
+ if(/\bd ?-?(4|iv)\b/.test(v))return 8;
+ if(/\bd ?-?(3|iii)\b/.test(v))return 7;
+ if(/\bd ?-?(2|ii)\b/.test(v))return 6;
+ if(/\bd ?-?(1|i)\b/.test(v))return 5;
+ if(/paket c|\bsma\b|\bsmk\b|\bman\b|\bma\b|slta/.test(v))return 4;
+ if(/paket b|\bsmp\b|\bmts\b|sltp/.test(v))return 3;
+ if(/paket a|\bsd\b|\bmi\b/.test(v))return 2;
+ return 99}
 function xtab(title,list,fn,order){const g=group(list,fn);let e=Object.entries(g);
- e.sort(order?(a,b)=>(order.indexOf(a[0])<0?99:order.indexOf(a[0]))-(order.indexOf(b[0])<0?99:order.indexOf(b[0])):(a,b)=>b[1].length-a[1].length);
+ e.sort(typeof order=='function'?(a,b)=>order(a[0])-order(b[0])||b[1].length-a[1].length:order?(a,b)=>(order.indexOf(a[0])<0?99:order.indexOf(a[0]))-(order.indexOf(b[0])<0?99:order.indexOf(b[0])):(a,b)=>b[1].length-a[1].length);
  e.push(['Total',list]);const id=window._xt.length;window._xt.push({title,rows:e});
  const c=(i,t,a)=>a.length?`<td class="c" onclick="openX(${id},${i},'${t}')">${a.length}</td>`:'<td class="z">-</td>';
  return `<div class="card"><h3>${title}</h3><div class="${e.length>10?'scroll':''}"><table class="xt"><tr><th></th>${TING.map(t=>`<th>${t}</th>`).join('')}<th>Total</th></tr>${e.map((r,i)=>`<tr${r[0]=='Total'?' class="tot"':''}><td>${esc(r[0])}</td>${TING.map(t=>c(i,t,r[1].filter(x=>x['Tingkat']==t))).join('')}${c(i,'',r[1])}</tr>`).join('')}</table></div></div>`}
@@ -178,10 +199,10 @@ function render(){$('#chips .sel').style.visibility=tab=='cari'?'hidden':'visibl
  h+=`<div class="kpi">${window._k.map((k,i)=>`<div class="k" onclick="openM('${k[0]}',window._k[${i}][1])"><b>${k[1].length}</b><span>${k[0]}</span></div>`).join('')}</div><div class="grid">`;
  if(tab=='siswa'){h+=markazCard(d);
   h+=bars('Siswa per Tingkat',group(d,x=>'Kelas '+x['Tingkat']),{order:TING.map(t=>'Kelas '+t)});h+=kelasCard(d)}
- if(tab=='ortu'){for(const [t,f,o] of [['Pendidikan','Pendidikan'],['Pekerjaan','Pekerjaan'],['Penghasilan','Penghasilan',ORDER_INC]])
+ if(tab=='ortu'){for(const [t,f,o] of [['Pendidikan','Pendidikan',eduRank],['Pekerjaan','Pekerjaan'],['Penghasilan','Penghasilan',ORDER_INC]])
   for(const w of ['Ayah','Ibu'])h+=xtab(`${t} ${w}`,d,x=>x[f+' '+w],o)}
  if(tab=='yatim'){const y=d.filter(x=>x['Status Yatim']=='Ya');
-  h+=bars('Siswa Yatim',group(d,x=>x['Status Yatim']=='Ya'?(x['Jenis Yatim']?'Yatim · '+x['Jenis Yatim']:'Yatim'):'Bukan Yatim'));
+  h+=bars('Siswa Yatim',group(d,x=>x['Status Yatim']=='Ya'?(x['Jenis Yatim']||'Yatim'):'Bukan Yatim'));
   h+=bars('Siswa Yatim per Markaz',group(y,x=>'Markaz '+x._mk));h+=bars('Siswa Yatim per Tingkat',group(y,x=>'Kelas '+x['Tingkat']),{order:TING.map(t=>'Kelas '+t)})}
  if(tab=='pegawai'){const p=d.filter(x=>x['Anak Pegawai']=='Ya');
   h+=bars('Anak Pegawai / Karyawan',group(d,x=>x['Anak Pegawai']=='Ya'?'Anak Pegawai/Karyawan':'Bukan Anak Pegawai'));
@@ -215,11 +236,18 @@ function drawCari(){const q=qs.trim().toLowerCase(),box=$('#sr');
  box.innerHTML=`<div class="cnt">${a.length} hasil${a.length>30?' · menampilkan 30 pertama, persempit pencarian':''}</div>`+a.slice(0,30).map(cardS).join('')}
 function cardS(x){const f=(l,v,c)=>`<div class="f${c?' '+c:''}"><span>${l}</span><b${c=='w'?' dir="rtl"':''}>${esc(v)||'-'}</b></div>`;
  return `<div class="sc"><div class="sh"><h4>${esc(x['Nama'])}</h4><span class="bd">${x['Kelas']?'Kelas '+esc(x['Kelas'])+' · ':''}Markaz ${x._mk}</span></div><div class="fg">${f('NIS',x['NIS'])}${f('NISN',x['NISN'])}${f('NIK',x['NIK'])}${f('Nama',x['Nama'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Tempat, Tanggal Lahir',ttl(x))}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></div>`}
-function drawM(){$('#mc').textContent=curList.length+' siswa';
- $('#ml').innerHTML=`<table class="lst"><tr><th>No</th><th>NISN</th><th>Nama</th><th>Tempat, Tanggal Lahir</th><th>Kelas</th><th>Markaz</th><th>JK</th></tr>${curList.map((x,n)=>`<tr><td data-l="No">${n+1}</td><td data-l="NISN">${esc(x['NISN'])||'-'}</td><td class="nm" data-l="Nama">${esc(x['Nama'])}</td><td class="nw" data-l="TTL">${esc(ttl(x))||'-'}</td><td data-l="Kelas">${esc(x['Kelas'])||'-'}</td><td data-l="Markaz">${x._mk}</td><td data-l="JK" class="${x['Gender']}">${x['Gender']}</td></tr>`).join('')}</table>`}
+function drawM(){$('#mc').textContent=curList.length+' siswa';const ep=tab=='pegawai'&&curList.some(x=>x['Anak Pegawai']=='Ya');
+ $('#ml').innerHTML=`<table class="lst"><tr><th>No</th><th>NISN</th><th>Nama</th><th>Tempat, Tanggal Lahir</th><th>Kelas</th><th>Markaz</th><th>JK</th>${ep?'<th class="ep">Nama Pegawai (Orang Tua)</th>':''}</tr>${curList.map((x,n)=>`<tr><td data-l="No">${n+1}</td><td data-l="NISN">${esc(x['NISN'])||'-'}</td><td class="nm" data-l="Nama">${esc(x['Nama'])}</td><td class="nw" data-l="TTL">${esc(ttl(x))||'-'}</td><td data-l="Kelas">${esc(x['Kelas'])||'-'}</td><td data-l="Markaz">${x._mk}</td><td data-l="JK" class="${x['Gender']}">${x['Gender']}</td>${ep?`<td class="ep" data-l="Orang Tua">${esc(x['Nama Pegawai'])||'-'}</td>`:''}</tr>`).join('')}</table>`}
 function closeM(){render();window.scrollTo(0,lastY)}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');tab=b.dataset.t;render()});
 $('#chips').innerHTML=`<label class="sel"><span>Markaz</span><select id="mkSel">${[['Semua','Semua Markaz'],["Al-Ma'tuq","Al-Ma'tuq"],['Al-Zamil','Al-Zamil'],['Al-Afaf','Al-Afaf'],['Al-Bassam','Al-Bassam']].map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')}</select></label><button class="chip ref" id="rf" aria-label="Muat ulang data">⟳</button>`;
 $('#mkSel').onchange=e=>{mk=e.target.value;render()};$('#rf').onclick=load;
+let dp=null;const standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
+function showIns(html){let x=0;try{x=localStorage.getItem('ins_x')}catch(_){}if(standalone||x)return;const e=$('#ins');e.innerHTML=html+'<button class="ix" aria-label="Tutup">×</button>';e.hidden=false;
+ e.querySelector('.ix').onclick=()=>{e.hidden=true;try{localStorage.setItem('ins_x','1')}catch(_){}};
+ const b=e.querySelector('.ib');if(b)b.onclick=async()=>{dp.prompt();await dp.userChoice;dp=null;e.hidden=true}}
+window.addEventListener('beforeinstallprompt',ev=>{ev.preventDefault();dp=ev;showIns('<span>Pasang aplikasi ini di layar utama HP Anda.</span><button class="ib">Pasang</button>')});
+window.addEventListener('appinstalled',()=>{$('#ins').hidden=true});
+if(/iphone|ipad|ipod/i.test(navigator.userAgent))showIns('<span>Untuk memasang: ketuk ikon <b>Bagikan</b>, lalu pilih <b>Tambahkan ke Layar Utama</b>.</span>');
 load();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
