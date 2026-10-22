@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Data Siswa MA Al-Ma'tuq 2026/2027</title>
+<title>Dashboard Data Siswa MA Al-Ma'tuq 2026/2027</title>
 <link rel="manifest" href="manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Data Siswa MA"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="theme-color" content="#0f766e">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -164,6 +164,8 @@ function build(rows){const h=rows[0].map(x=>x.trim());return rows.slice(1).map(r
 // ====== WALI KELAS ======
 // Cara 1: buat tab baru di spreadsheet (kolom: Markaz | Kelas | Wali Kelas), isi gid-nya di sini. Contoh: const WALI_GID='123456789';
 const WALI_GID='';
+// Default: dibaca dari tab bernama "Wali Kelas" (kolom: Nama Wali Kelas | Kelas | Markaz). Ganti nama tab di sini jika berbeda.
+const WALI_SHEET='Wali Kelas';
 // Cara 2: isi manual. Contoh: {"Al-Zamil|10 F":"Ustadzah Fulanah","Al-Ma'tuq|10 A":"Ustadz Fulan"}
 const WALI_MANUAL={};
 let WALI={};
@@ -171,9 +173,9 @@ const kn=k=>(k||'').toLowerCase().replace(/\s+/g,'');
 function mn(m){m=(m||'').toLowerCase();return m.includes('zamil')?'alzamil':m.includes('bassam')?'albassam':m.includes('afaf')?'alafaf':m.includes('tuq')?'almatuq':''}
 const wali=(m,k)=>WALI[mn(m)+'|'+kn(k)]||WALI['|'+kn(k)]||'';
 async function loadWali(){WALI={};try{
- if(WALI_GID!==''){let rows;try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${WALI_GID}`);if(!r.ok)throw 0;const t=await r.text();if(t.trim().startsWith('<'))throw 0;rows=csv(t);localStorage.setItem('ma_wali',JSON.stringify(rows))}catch(e){rows=JSON.parse(localStorage.getItem('ma_wali')||'[]')}
-  if(rows.length){const h=rows[0].map(x=>x.trim().toLowerCase()),ik=h.indexOf('kelas'),iw=h.findIndex(x=>x.startsWith('wali')),im=h.findIndex(x=>x.startsWith('markaz')||x=='sekolah');
-   rows.slice(1).forEach(r=>{const k=(r[ik]||'').trim(),w=(r[iw]||'').trim();if(k&&w)WALI[mn(im>=0?r[im]:'')+'|'+kn(k)]=w})}}
+ if(WALI_GID!==''||WALI_SHEET){let rows;try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&`+(WALI_GID!==''?`gid=${WALI_GID}`:`sheet=${encodeURIComponent(WALI_SHEET)}`));if(!r.ok)throw 0;const t=await r.text();if(t.trim().startsWith('<'))throw 0;rows=csv(t);localStorage.setItem('ma_wali',JSON.stringify(rows))}catch(e){rows=JSON.parse(localStorage.getItem('ma_wali')||'[]')}
+  if(rows.length){const h=rows[0].map(x=>x.trim().toLowerCase()),ik=h.indexOf('kelas'),iw=h.findIndex(x=>x.includes('wali')),im=h.findIndex(x=>x.startsWith('markaz')||x=='sekolah');
+   if(ik>=0&&iw>=0)rows.slice(1).forEach(r=>{const k=(r[ik]||'').trim(),w=(r[iw]||'').trim();if(k&&w)WALI[mn(im>=0?r[im]:'')+'|'+kn(k)]=w})}}
  Object.entries(WALI_MANUAL).forEach(([k,v])=>{const p=k.split('|'),c=p.pop();WALI[mn(p[0]||'')+'|'+kn(c)]=v})}catch(e){}}
 async function load(){const wp=loadWali();
  try{const r=await fetch(URL_CSV);if(!r.ok)throw 0;const t=await r.text();if(t.trim().startsWith('<'))throw 0;
