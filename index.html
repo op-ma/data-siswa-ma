@@ -138,6 +138,16 @@ small.wk{display:block;font-size:11px;font-weight:500;color:var(--mut);margin-to
 @media(min-width:641px){.lst td.wl,.lst th.wl,.xt td.wl,.xt th.wl{text-align:left}.lst td.um{white-space:nowrap}}
 .xt td.wl{font-size:12px}
 main.wide{max-width:none;padding:12px 16px}
+/* Kelas & JK: kotak per tingkat, tanpa scroll */
+.tg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px;align-items:start}
+.tb{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;min-width:0}
+.tbh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;font-weight:800;font-size:14px}
+.tbh span{font-size:11px;font-weight:600;opacity:.85}
+.tb table{font-size:12.5px}.tb th{position:static}.tb td:first-child{line-height:1.25}
+.tb td:first-child b{font-weight:700}
+.tgt{margin-top:12px;font-size:12.5px;font-weight:700;color:var(--mut);text-align:right}
+.tgt a{cursor:pointer;color:var(--b2)}.tgt a.L{color:var(--L)}.tgt a.P{color:var(--P)}
+
 .dtop{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}.dtop h3{margin:0;font-size:14px;font-weight:800}.dtop small{color:var(--mut);font-size:12px}
 .dtop button{margin-left:auto;border:1px solid var(--line);background:#fff;color:var(--b2);font:700 12.5px inherit;font-family:inherit;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--sh)}
 .dl{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:visible}
@@ -255,12 +265,14 @@ function kelasCard(d){window._kd=d;const g=group(d,x=>x._mk+'|'+(x['Kelas']||'Ta
  const kv=keys.map(k=>{const [m,c]=k.split('|'),b=g[k];return [c,wali(m,c),m,cnt(b,'L'),cnt(b,'P'),b.length]});
  const cell=(v,fn)=>v?`<td class="c" onclick="${fn}">${v}</td>`:'<td class="z">-</td>';
  const ts=[...TING,...[...new Set(d.map(x=>x['Tingkat']))].filter(t=>t&&!TING.includes(t))];
- CARDS[id]=()=>{const s=SORT[id];let rows='';
+ CARDS[id]=()=>{const s=SORT[id];let boxes='';
   ts.forEach(t=>{const idx=keys.map((k,i)=>i).filter(i=>g[keys[i]][0]['Tingkat']==t);if(!idx.length)return;if(s)idx.sort((a,b)=>s.d*cmp(kv[a][s.c],kv[b][s.c]));const a=d.filter(x=>x['Tingkat']==t);
-   rows+=`<tr class="sub"><td colspan="${cs}">Kelas ${esc(t)}</td>${cell(cnt(a,'L'),`openT('${t}','L')`)}${cell(cnt(a,'P'),`openT('${t}','P')`)}${cell(a.length,`openT('${t}','')`)}</tr>`;
-   idx.forEach(i=>{const [c,w,m,l,p,n]=kv[i];rows+=`<tr><td>${esc(c)}</td>${hw?`<td class="wl">${esc(w)||'-'}</td>`:''}<td>${esc(m)}</td>${cell(l,`openK(${i},'L')`)}${cell(p,`openK(${i},'P')`)}${cell(n,`openK(${i},'')`)}</tr>`})});
-  rows+=`<tr class="tot"><td colspan="${cs}">Total</td>${cell(cnt(d,'L'),"openT('','L')")}${cell(cnt(d,'P'),"openT('','P')")}${cell(d.length,"openT('','')")}</tr>`;
-  return `<div class="card full" id="${id}"><h3>Siswa per Kelas &amp; Jenis Kelamin</h3><div class="scroll"><table class="xt"><tr>${th(id,0,'Kelas')}${hw?th(id,1,'Wali Kelas','wl'):''}${th(id,2,'Markaz')}${th(id,3,'L','L')}${th(id,4,'P','P')}${th(id,5,'Total')}</tr>${rows}</table></div></div>`};
+   let rows='';
+   idx.forEach(i=>{const [c,w,m,l,p,n]=kv[i];const info=[mk=='Semua'?m:'',w].filter(Boolean).map(esc).join(' · ');rows+=`<tr><td><b>${esc(c)}</b>${info?`<small class="wk">${info}</small>`:''}</td>${cell(l,`openK(${i},'L')`)}${cell(p,`openK(${i},'P')`)}${cell(n,`openK(${i},'')`)}</tr>`});
+   rows+=`<tr class="sub"><td>Jumlah</td>${cell(cnt(a,'L'),`openT('${t}','L')`)}${cell(cnt(a,'P'),`openT('${t}','P')`)}${cell(a.length,`openT('${t}','')`)}</tr>`;
+   boxes+=`<div class="tb"><div class="tbh">Kelas ${esc(t)}<span>${idx.length} rombel · ${a.length} siswa</span></div><table class="xt"><tr>${th(id,0,'Kelas')}${th(id,3,'L','L')}${th(id,4,'P','P')}${th(id,5,'Total')}</tr>${rows}</table></div>`});
+  const tot=`<div class="tgt">Total semua kelas: <a class="L" onclick="openT('','L')">L ${cnt(d,'L')}</a> · <a class="P" onclick="openT('','P')">P ${cnt(d,'P')}</a> · <a onclick="openT('','')">${d.length} siswa</a></div>`;
+  return `<div class="card full" id="${id}"><h3>Siswa per Kelas &amp; Jenis Kelamin</h3><div class="tg">${boxes}</div>${tot}</div>`};
  return CARDS[id]()}
 // Kartu baru: rekap per tingkat & jenis kelamin, tanpa membedakan markaz
 function jkTingkatCard(d){
