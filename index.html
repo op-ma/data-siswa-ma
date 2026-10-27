@@ -262,6 +262,15 @@ function kelasCard(d){window._kd=d;const g=group(d,x=>x._mk+'|'+(x['Kelas']||'Ta
   rows+=`<tr class="tot"><td colspan="${cs}">Total</td>${cell(cnt(d,'L'),"openT('','L')")}${cell(cnt(d,'P'),"openT('','P')")}${cell(d.length,"openT('','')")}</tr>`;
   return `<div class="card full" id="${id}"><h3>Siswa per Kelas &amp; Jenis Kelamin</h3><div class="scroll"><table class="xt"><tr>${th(id,0,'Kelas')}${hw?th(id,1,'Wali Kelas','wl'):''}${th(id,2,'Markaz')}${th(id,3,'L','L')}${th(id,4,'P','P')}${th(id,5,'Total')}</tr>${rows}</table></div></div>`};
  return CARDS[id]()}
+// Kartu baru: rekap per tingkat & jenis kelamin, tanpa membedakan markaz
+function jkTingkatCard(d){
+ const cnt=(a,f)=>a.filter(x=>x['Gender']==f).length;
+ const ts=[...TING,...[...new Set(d.map(x=>x['Tingkat']))].filter(t=>t&&!TING.includes(t))].filter(t=>d.some(x=>x['Tingkat']==t));
+ const cell=(v,fn)=>v?`<td class="c" onclick="${fn}">${v}</td>`:'<td class="z">-</td>';
+ let rows=ts.map(t=>{const a=d.filter(x=>x['Tingkat']==t);return `<tr><td>Kelas ${esc(t)}</td>${cell(cnt(a,'L'),`openT('${t}','L')`)}${cell(cnt(a,'P'),`openT('${t}','P')`)}${cell(a.length,`openT('${t}','')`)}</tr>`}).join('');
+ rows+=`<tr class="tot"><td>Total</td>${cell(cnt(d,'L'),"openT('','L')")}${cell(cnt(d,'P'),"openT('','P')")}${cell(d.length,"openT('','')")}</tr>`;
+ return `<div class="card"><h3>Siswa per Tingkat &amp; Jenis Kelamin</h3><table class="xt"><tr><th>Tingkat</th><th class="L">Laki-laki</th><th class="P">Perempuan</th><th>Total</th></tr>${rows}</table></div>`;
+}
 const JK=f=>f=='L'?'Laki-laki':'Perempuan';
 function openK(i,f){const k=window._kk[i];openM('Kelas '+k.split('|')[1]+' · '+k.split('|')[0]+(f?' · '+JK(f):''),window._kg[k].filter(x=>!f||x['Gender']==f),wali(k.split('|')[0],k.split('|')[1])?'Wali Kelas: '+wali(k.split('|')[0],k.split('|')[1]):'')}
 function openT(t,f){openM((t?'Kelas '+t:'Semua Kelas')+(f?' · '+JK(f):''),window._kd.filter(x=>(!t||x['Tingkat']==t)&&(!f||x['Gender']==f)))}
@@ -270,7 +279,7 @@ function render(){$('#app').classList.toggle('wide',tab=='data');document.queryS
  const d=data();let h='';window._xt=[];
  const L=d.filter(x=>x['Gender']=='L'),P=d.filter(x=>x['Gender']=='P');window._k=[['Total Siswa',d],['Laki-laki',L],['Perempuan',P]];
  h+=`<div class="kpi">${window._k.map((k,i)=>`<div class="k" onclick="openM('${k[0]}',window._k[${i}][1])"><b>${k[1].length}</b><span>${k[0]}</span></div>`).join('')}</div><div class="grid">`;
- if(tab=='siswa'){h+=markazCard(d);
+ if(tab=='siswa'){h+=jkTingkatCard(d);h+=markazCard(d);
   h+=bars('Siswa per Tingkat',group(d,x=>'Kelas '+x['Tingkat']),{order:TING.map(t=>'Kelas '+t)});h+=kelasCard(d)}
  if(tab=='ortu'){for(const [t,f,o] of [['Pendidikan','Pendidikan',eduRank],['Pekerjaan','Pekerjaan'],['Penghasilan','Penghasilan',ORDER_INC]])
   for(const w of ['Ayah','Ibu'])h+=xtab(`${t} ${w}`,d,x=>x[f+' '+w],o,t)}
