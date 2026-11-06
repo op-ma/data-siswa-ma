@@ -149,6 +149,7 @@ main.wide{max-width:none;padding:12px 16px}
 .tgt a{cursor:pointer;color:var(--b2)}.tgt a.L{color:var(--L)}.tgt a.P{color:var(--P)}
 
 .dtop{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}.dtop h3{margin:0;font-size:14px;font-weight:800}.dtop small{color:var(--mut);font-size:12px}
+.dtop .kf{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--mut)}.dtop .kf select{border:1px solid var(--line);background:#fff;color:var(--ink);font:600 12.5px inherit;font-family:inherit;padding:7px 10px;border-radius:10px;box-shadow:var(--sh);cursor:pointer}
 .dtop button{margin-left:auto;border:1px solid var(--line);background:#fff;color:var(--b2);font:700 12.5px inherit;font-family:inherit;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--sh)}
 .dl{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:visible}
 .dl .lst{width:100%}.dl .lst td,.dl .lst th{white-space:nowrap}
@@ -183,10 +184,10 @@ const TA='2026/2027';
 const URL_CSV=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 const ORDER_INC=['Tidak Ada','Kurang dari 500.000','500.000 - 1.000.000','1.000.001 - 2.000.000','2.000.001 - 3.000.000','3.000.001 - 5.000.000','Lebih dari 5.000.000'];
 const TING=['X','XI','XII'];
-let ALL=[],mk='Semua',tab='siswa',curList=[];
+let ALL=[],mk='Semua',tab='siswa',curList=[],kf='Semua';
 const $=s=>document.querySelector(s);
 function csv(t){const r=[];let w=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){w.push(f);f='';}else if(c=='\n'){w.push(f);r.push(w);w=[];f=''}else if(c!='\r')f+=c}if(f||w.length){w.push(f);r.push(w)}return r}
-function build(rows){const h=rows[0].map(x=>x.trim());return rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=(r[i]||'').trim());return o}).filter(o=>o['Nama']).map(o=>{o['Nama']=o['Nama'].toUpperCase();
+function build(rows){const h=rows[0].map(x=>x.trim());const ikk=h.findIndex(k=>/^(no\.?\s*)?(kk|kartu keluarga)$|no\.?\s*(kk|kartu keluarga)|nomor\s*(kk|kartu keluarga)/i.test(k));return rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=(r[i]||'').trim());o['No KK']=ikk>=0?(r[ikk]||'').trim():'';return o}).filter(o=>o['Nama']).map(o=>{o['Nama']=o['Nama'].toUpperCase();
  const s=o['Sekolah'].toLowerCase().replace(/[’`]/g,"'");
  if(!/^ma\s/.test(s)||!s.includes('tuq'))return null;
  o._mk=s.includes('zamil')?'Al-Zamil':s.includes('bassam')?'Al-Bassam':s.includes('afaf')?'Al-Afaf':"Al-Ma'tuq";
@@ -287,7 +288,7 @@ const JK=f=>f=='L'?'Laki-laki':'Perempuan';
 function openK(i,f){const k=window._kk[i];openM('Kelas '+k.split('|')[1]+' · '+k.split('|')[0]+(f?' · '+JK(f):''),window._kg[k].filter(x=>!f||x['Gender']==f),wali(k.split('|')[0],k.split('|')[1])?'Wali Kelas: '+wali(k.split('|')[0],k.split('|')[1]):'')}
 function openT(t,f){openM((t?'Kelas '+t:'Semua Kelas')+(f?' · '+JK(f):''),window._kd.filter(x=>(!t||x['Tingkat']==t)&&(!f||x['Gender']==f)))}
 function render(){$('#app').classList.toggle('wide',tab=='data');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.t==tab));$('#cs').classList.toggle('on',tab=='cari');$('#mkSel').disabled=tab=='cari';$('#chips .sel').style.opacity=tab=='cari'?.45:1;if(tab=='cari')return renderCari();
- if(tab=='data'){const dd=data();window._dl=dd.slice().sort((a,b)=>a['Nama'].localeCompare(b['Nama']));$('#app').innerHTML=`<div class="dtop"><h3>Data Siswa · ${dd.length} siswa</h3><small>Klik baris untuk melihat detail · klik judul kolom untuk mengurutkan</small><button id=\"tga\" onclick=\"tgAll()\">Buka semua detail</button></div><div class="lw dl" id="dlw"></div>`;drawDl();updTga();return}
+ if(tab=='data'){const d0=data(),kl=[...new Set(d0.map(x=>x['Kelas']||'').filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b,'id',{numeric:true}));if(kf!='Semua'&&!kl.includes(kf))kf='Semua';const dd=kf=='Semua'?d0:d0.filter(x=>(x['Kelas']||'')==kf);window._dl=dd.slice().sort((a,b)=>a['Nama'].localeCompare(b['Nama']));$('#app').innerHTML=`<div class="dtop"><h3>Data Siswa · ${dd.length} siswa</h3><label class="kf">Kelas <select onchange="kf=this.value;render()"><option value="Semua">Semua kelas</option>${kl.map(k=>`<option value="${esc(k)}"${k==kf?' selected':''}>${esc(k)}</option>`).join('')}</select></label><small>Klik baris untuk melihat detail · klik judul kolom untuk mengurutkan</small><button id=\"tga\" onclick=\"tgAll()\">Buka semua detail</button></div><div class="lw dl" id="dlw"></div>`;drawDl();updTga();return}
  const d=data();let h='';window._xt=[];
  const L=d.filter(x=>x['Gender']=='L'),P=d.filter(x=>x['Gender']=='P');window._k=[['Total Siswa',d],['Laki-laki',L],['Perempuan',P]];
  h+=`<div class="kpi">${window._k.map((k,i)=>`<div class="k" onclick="openM('${k[0]}',window._k[${i}][1])"><b>${k[1].length}</b><span>${k[0]}</span></div>`).join('')}</div><div class="grid">`;
@@ -330,7 +331,7 @@ function drawCari(){const q=qs.trim().toLowerCase(),box=$('#sr');
  const a=ALL.filter(x=>[x['Nama'],x['Nama Arab'],x['NIS'],x['NISN'],x['NIK']].join(' ').toLowerCase().includes(q)).sort((p,r)=>p['Nama'].localeCompare(r['Nama']));
  box.innerHTML=`<div class="cnt">${a.length} hasil${a.length>30?' · menampilkan 30 pertama, persempit pencarian':''}</div>`+a.slice(0,30).map(cardS).join('')}
 function cardS(x){const f=(l,v,c)=>`<div class="f${c?' '+c:''}"><span>${l}</span><b${c=='w'?' dir="rtl"':''}>${esc(v)||'-'}</b></div>`;
- return `<div class="sc"><div class="sh"><h4>${esc(x['Nama'])}</h4><span class="bd">${x['Kelas']?'Kelas '+esc(x['Kelas'])+' · ':''}Markaz ${x._mk}</span></div><div class="fg">${f('NIS',x['NIS'])}${f('NISN',x['NISN'])}${f('NIK',x['NIK'])}${f('Nama',x['Nama'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Tempat, Tanggal Lahir',ttl(x))}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></div>`}
+ return `<div class="sc"><div class="sh"><h4>${esc(x['Nama'])}</h4><span class="bd">${x['Kelas']?'Kelas '+esc(x['Kelas'])+' · ':''}Markaz ${x._mk}</span></div><div class="fg">${f('NIS',x['NIS'])}${f('NISN',x['NISN'])}${f('NIK',x['NIK'])}${f('No KK',x['No KK'])}${f('Nama',x['Nama'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Tempat, Tanggal Lahir',ttl(x))}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></div>`}
 const dkey=x=>{const m=/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(x['Tanggal Lahir']||'');return m?m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0'):(x['Tanggal Lahir']||'')};
 function dob(x){const v=(x['Tanggal Lahir']||'').trim();let r,y,m,d;if(r=/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(v)){d=+r[1];m=+r[2];y=+r[3]}else if(r=/^(\d{4})-(\d{2})-(\d{2})/.exec(v)){y=+r[1];m=+r[2];d=+r[3]}else return null;if(y<1900||m<1||m>12)return null;return new Date(y,m-1,d)}
 function ageM(x){const b=dob(x);if(!b)return null;const n=new Date();let mo=(n.getFullYear()-b.getFullYear())*12+n.getMonth()-b.getMonth();if(n.getDate()<b.getDate())mo--;return mo>=0?mo:null}
@@ -357,7 +358,7 @@ function lstHTML(id,list){const full=id=='dl',ep=tab=='pegawai'&&list.some(x=>x[
  const rowH=(x,n)=>{const k=full?dk(x):'',op=full&&OPEN.has(k);
   const main=`<tr${full?` class="mr${op?' open':''}" data-k="${esc(k)}" onclick="tgr(this)"`:''}><td data-l="No">${full?'<span class="tg">▸</span> ':''}${n+1}</td>${cols.slice(1).map(c=>c[3](x)).join('')}</tr>`;
   if(!full)return main;
-  return main+`<tr class="dr${op?' open':''}"><td colspan="${cols.length}"><div class="dg">${f('Anak Ke / Jml Saudara',anak(x))}${f('NIS',x['NIS'])}${f('NIK',x['NIK'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></td></tr>`};
+  return main+`<tr class="dr${op?' open':''}"><td colspan="${cols.length}"><div class="dg">${f('Anak Ke / Jml Saudara',anak(x))}${f('NIS',x['NIS'])}${f('NIK',x['NIK'])}${f('No KK',x['No KK'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></td></tr>`};
  return bar+`<table class="lst"><tr>${cols.map((c,i)=>i?th(id,i,c[0],c[2]):'<th>No</th>').join('')}</tr>${a.map(rowH).join('')}</table>`}
 let OPEN=new Set();
 const dk=x=>x['ID']||x['NISN']||x['Nama'];
