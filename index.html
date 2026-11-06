@@ -153,7 +153,7 @@ main.wide{max-width:none;padding:12px 16px}
 .dtop button{margin-left:auto;border:1px solid var(--line);background:#fff;color:var(--b2);font:700 12.5px inherit;font-family:inherit;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--sh)}
 .dl{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);overflow:visible}
 .dl .lst{width:100%}.dl .lst td,.dl .lst th{white-space:nowrap}
-.dl tr.mr{cursor:pointer}.dl tr.mr:hover td{background:#f0fdfa}
+.dl td.nt{cursor:pointer;color:var(--b2);font-weight:700;user-select:none}.dl td.nt:hover{background:#ccfbf1}
 .dl .tg{display:inline-block;width:14px;color:var(--b2);font-size:11px;transition:transform .15s}.dl tr.mr.open .tg{transform:rotate(90deg)}
 .dl tr.dr{display:none}.dl tr.dr.open{display:table-row}
 .dl tr.dr>td{background:#f8fafc;padding:14px 18px;text-align:left;white-space:normal;border-bottom:1px solid var(--line)}
@@ -162,8 +162,7 @@ main.wide{max-width:none;padding:12px 16px}
 @media(max-width:640px){
  main.wide{padding:12px}.dtop small{display:none}.dtop button{margin-left:0}
  .dl{background:none;border:0;box-shadow:none}.dl .lst td,.dl .lst th{white-space:normal}
- .dl tr.mr::after{content:"Lihat detail ▸";display:block;text-align:right;color:var(--b2);font-size:12px;font-weight:700;padding-top:6px}
- .dl tr.mr.open::after{content:"Sembunyikan detail ▾"}
+ .dl td.nt{background:#f0fdfa;border-radius:8px;padding:7px 10px;margin-bottom:4px;align-items:center}
  .dl tr.mr.open{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0}
  .dl tr.dr.open{display:block;margin:0 0 8px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;background:#f8fafc}
  .dl tr.dr>td{display:block;padding:12px 14px;border:0}.dl tr.dr>td::before{display:none}
@@ -288,7 +287,7 @@ const JK=f=>f=='L'?'Laki-laki':'Perempuan';
 function openK(i,f){const k=window._kk[i];openM('Kelas '+k.split('|')[1]+' · '+k.split('|')[0]+(f?' · '+JK(f):''),window._kg[k].filter(x=>!f||x['Gender']==f),wali(k.split('|')[0],k.split('|')[1])?'Wali Kelas: '+wali(k.split('|')[0],k.split('|')[1]):'')}
 function openT(t,f){openM((t?'Kelas '+t:'Semua Kelas')+(f?' · '+JK(f):''),window._kd.filter(x=>(!t||x['Tingkat']==t)&&(!f||x['Gender']==f)))}
 function render(){$('#app').classList.toggle('wide',tab=='data');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.t==tab));$('#cs').classList.toggle('on',tab=='cari');$('#mkSel').disabled=tab=='cari';$('#chips .sel').style.opacity=tab=='cari'?.45:1;if(tab=='cari')return renderCari();
- if(tab=='data'){const d0=data(),kl=[...new Set(d0.map(x=>x['Kelas']||'').filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b,'id',{numeric:true}));if(kf!='Semua'&&!kl.includes(kf))kf='Semua';const dd=kf=='Semua'?d0:d0.filter(x=>(x['Kelas']||'')==kf);window._dl=dd.slice().sort((a,b)=>a['Nama'].localeCompare(b['Nama']));$('#app').innerHTML=`<div class="dtop"><h3>Data Siswa · ${dd.length} siswa</h3><label class="kf">Kelas <select onchange="kf=this.value;render()"><option value="Semua">Semua kelas</option>${kl.map(k=>`<option value="${esc(k)}"${k==kf?' selected':''}>${esc(k)}</option>`).join('')}</select></label><small>Klik baris untuk melihat detail · klik judul kolom untuk mengurutkan</small><button id=\"tga\" onclick=\"tgAll()\">Buka semua detail</button></div><div class="lw dl" id="dlw"></div>`;drawDl();updTga();return}
+ if(tab=='data'){const d0=data(),kl=[...new Set(d0.map(x=>x['Kelas']||'').filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b,'id',{numeric:true}));if(kf!='Semua'&&!kl.includes(kf))kf='Semua';const dd=kf=='Semua'?d0:d0.filter(x=>(x['Kelas']||'')==kf);window._dl=dd.slice().sort((a,b)=>a['Nama'].localeCompare(b['Nama']));$('#app').innerHTML=`<div class="dtop"><h3>Data Siswa · ${dd.length} siswa</h3><label class="kf">Kelas <select onchange="kf=this.value;render()"><option value="Semua">Semua kelas</option>${kl.map(k=>`<option value="${esc(k)}"${k==kf?' selected':''}>${esc(k)}</option>`).join('')}</select></label><small>Klik no urut untuk melihat detail · klik judul kolom untuk mengurutkan</small><button id=\"tga\" onclick=\"tgAll()\">Buka semua detail</button></div><div class="lw dl" id="dlw"></div>`;drawDl();updTga();return}
  const d=data();let h='';window._xt=[];
  const L=d.filter(x=>x['Gender']=='L'),P=d.filter(x=>x['Gender']=='P');window._k=[['Total Siswa',d],['Laki-laki',L],['Perempuan',P]];
  h+=`<div class="kpi">${window._k.map((k,i)=>`<div class="k" onclick="openM('${k[0]}',window._k[${i}][1])"><b>${k[1].length}</b><span>${k[0]}</span></div>`).join('')}</div><div class="grid">`;
@@ -356,7 +355,7 @@ function lstHTML(id,list){const full=id=='dl',ep=tab=='pegawai'&&list.some(x=>x[
  const bar=`<div class="sortbar"><label>Urutkan <select onchange="srtSel('${id}',this.value)">${cols.slice(1).map((c,i)=>`<option value="${i+1}"${cur==i+1?' selected':''}>${c[0]}</option>`).join('')}</select></label><button onclick="srtDir('${id}')" aria-label="Balik urutan">${dir>0?'▲ A–Z':'▼ Z–A'}</button></div>`;
  const f=(l,v,c)=>`<div class="f${c?' '+c:''}"><span>${l}</span><b${c=='w'?' dir="rtl"':''}>${esc(v)||'-'}</b></div>`;
  const rowH=(x,n)=>{const k=full?dk(x):'',op=full&&OPEN.has(k);
-  const main=`<tr${full?` class="mr${op?' open':''}" data-k="${esc(k)}" onclick="tgr(this)"`:''}><td data-l="No">${full?'<span class="tg">▸</span> ':''}${n+1}</td>${cols.slice(1).map(c=>c[3](x)).join('')}</tr>`;
+  const main=`<tr${full?` class="mr${op?' open':''}" data-k="${esc(k)}"`:''}><td data-l="No"${full?` class="nt" onclick="tgr(this.parentNode)" title="Klik untuk lihat detail"`:''}>${full?'<span class="tg">▸</span> ':''}${n+1}</td>${cols.slice(1).map(c=>c[3](x)).join('')}</tr>`;
   if(!full)return main;
   return main+`<tr class="dr${op?' open':''}"><td colspan="${cols.length}"><div class="dg">${f('Anak Ke / Jml Saudara',anak(x))}${f('NIS',x['NIS'])}${f('NIK',x['NIK'])}${f('No KK',x['No KK'])}${f('Nama Arab',x['Nama Arab'],'w')}${f('Nama Ayah',x['Nama Ayah'])}${f('Nama Ibu',x['Nama Ibu'])}${f('Alamat Lengkap',alamat(x),'full')}</div></td></tr>`};
  return bar+`<table class="lst"><tr>${cols.map((c,i)=>i?th(id,i,c[0],c[2]):'<th>No</th>').join('')}</tr>${a.map(rowH).join('')}</table>`}
